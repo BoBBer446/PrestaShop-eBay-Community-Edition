@@ -3,9 +3,9 @@ No blocked Countries!
 
  
 
-Original Prestashop Store: http://addons.presta...offiziells.html
+Original Prestashop Store: http://addons.prestashop.com/de/2742-ebay-marketplace-offiziells.html
 
-Original 202commerce Site: http://www.202-ecomm...odules/ebay-en/
+Original 202commerce Site: http://www.202-ecommerce.com/en/partners-modules/ebay-en/
 
 How to Update:
 Copy all files from Archiv to your Moduls folder.
