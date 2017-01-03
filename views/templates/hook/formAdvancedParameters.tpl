@@ -112,18 +112,12 @@
 		</label>
 		<div class="margin-form">
 			<input type="checkbox" name="activate_logs" value="1"{if $activate_logs} checked="checked"{/if}>
+			{if $log_file_exists}
+			<a href="#" class ='logs'  class="button" data-inlinehelp="{l s='When log file size reaches 100 mo, log file is emptied automatically.' mod='ebay'}">{l s='Download' mod='ebay'}</a>
+			{/if}
 		</div>
 		<div class="clear both"></div>
-		{if $log_file_exists}
-			<label>
-				{l s='Download logs' mod='ebay'}
-			</label>
-			
-			<div class="margin-form">
-				<a href="#" class ='logs'  class="button">{l s='Download' mod='ebay'}</a>
-			</div>
-			<div class="clear both"></div>
-		{/if}
+
         
 		<label>{l s='Logs Conservation Duration' mod='ebay'} : </label>
 		<div class="margin-form">
