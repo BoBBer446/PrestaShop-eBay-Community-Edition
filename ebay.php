@@ -130,7 +130,7 @@ class Ebay extends Module
     {
         $this->name = 'ebay';
         $this->tab = 'market_place';
-        $this->version = '1.15.2';
+        $this->version = '1.15.3';
         $this->stats_version = '1.0';
 
         $this->author = 'PrestaShop';
@@ -192,6 +192,8 @@ class Ebay extends Module
             // Upgrade eBay module
             if (Configuration::get('EBAY_VERSION') != $this->version) {
                 $this->__upgrade();
+                set_time_limit(3600);
+                Configuration::set('EBAY_VERSION', $this->version);
                 $validatordb = new EbayDbValidator();
                 $validatordb->checkDatabase(false);
             }
@@ -1100,6 +1102,8 @@ class Ebay extends Module
 
                 // Validate order
                 $id_order = $order->validate($ebay_profile->id_shop, $this->ebay_profile->id);
+                $order->update($this->ebay_profile->id);
+
                 // @todo: verrifier la valeur de $id_order. Si validate ne fonctionne pas, on a quoi ??
                 // we now disable the carrier if required
                 if ($has_disabled_carrier) {
@@ -1112,7 +1116,7 @@ class Ebay extends Module
 
             }
 
-            $order->add($this->ebay_profile->id);
+
 
             if (!version_compare(_PS_VERSION_, '1.5', '>')) {
                 foreach ($order->getProducts() as $product) {
@@ -1457,28 +1461,16 @@ class Ebay extends Module
             ($id_order_ref = EbayOrder::getIdOrderRefByIdOrder($id_order))) {
 
             $id_ebay_profiles = Db::getInstance()->ExecuteS('SELECT DISTINCT(`id_ebay_profile`) FROM `'._DB_PREFIX_.'ebay_profile`');
+            $id_ebay_profile = EbayOrder::getIdProfilebyIdOrder($id_order);
+            $order = new Order($id_order);
 
-            if (count($id_ebay_profiles) == 1) {
-                $order = new Order($id_order);
-            }
+                    $ebay_profile = new EbayProfile($id_ebay_profile);
 
-            foreach ($id_ebay_profiles as $data) {
-                $id_ebay_profile = (int) $data['id_ebay_profile'];
-                $ebay_profile = new EbayProfile($id_ebay_profile);
-
-                if (!$ebay_profile->getConfiguration('EBAY_SEND_TRACKING_CODE')) {
-                    continue;
-                }
-
-                $carrier = new Carrier($order->id_carrier, $ebay_profile->id_lang);
-
-                $ebay_request = new EbayRequest($id_ebay_profile);
-                if ($ebay_request->updateOrderTracking($id_order_ref, $tracking_number, $carrier->name)) {
-                    break;
-                }
-            }
-
-
+                    if ($ebay_profile->getConfiguration('EBAY_SEND_TRACKING_CODE')) {
+                        $carrier = new Carrier($order->id_carrier, $ebay_profile->id_lang);
+                        $ebay_request = new EbayRequest($id_ebay_profile);
+                        $ebay_request->updateOrderTracking($id_order_ref, $tracking_number, $carrier->name);
+                    }
         }
 
         if (!((version_compare(_PS_VERSION_, '1.5.1', '>=')
@@ -1494,7 +1486,7 @@ class Ebay extends Module
      */
     public function getContent()
     {
-        $this->hookHeader(TRUE);
+        
         if (version_compare(_PS_VERSION_, '1.5', '>') && Shop::getContext() != Shop::CONTEXT_SHOP) {
             $this->bootstrap = true;
             return $this->display(__FILE__, 'views/templates/hook/alert_multishop.tpl');
