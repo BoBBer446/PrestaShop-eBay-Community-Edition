@@ -129,6 +129,12 @@ class EbayFormParametersTab extends EbayTab
                 'ps_version'     => _PS_VERSION_,
                 'error_code'     => 'HELP-ADV-SETTINGS-EAN',
             ),
+            'help_gtc' => array(
+                'lang'           => $this->context->country->iso_code,
+                'module_version' => $this->ebay->version,
+                'ps_version'     => _PS_VERSION_,
+                'error_code'     => 'HELP-SETTINGS-LISTING-DURATION',
+            ),
             'id_shop' => $this->context->shop->id,
         );
 
