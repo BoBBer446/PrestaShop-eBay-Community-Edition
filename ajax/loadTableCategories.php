@@ -136,7 +136,10 @@ if (Module::isInstalled('ebay')) {
             AND ecc.`id_ebay_profile` = '.(int) $ebay_profile->id.'
             WHERE ec.`id_country` = '.(int) $ebay_profile->ebay_site_id.'
             ORDER BY `level`';
-        foreach (Db::getInstance()->executeS($sql) as $category) {
+
+        $datas = Db::getInstance()->executeS($sql);
+
+        foreach ($datas as $category) {
             /* Add datas */
             if (isset($category['id_category'])) {
                 $category_config_list[$category['id_category']] = $category;

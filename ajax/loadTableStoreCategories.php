@@ -65,7 +65,7 @@ if (Module::isInstalled('ebay')) {
         $ebay_profile = new EbayProfile((int) Tools::getValue('profile'));
 
         $root_category = Category::getRootCategory();
-        $categories = Category::getCategories(Tools::getValue('id_lang'), false);
+        $categories = Category::getCategories(Tools::getValue('id_lang'));
         $category_list = $ebay->getChildCategories($categories, $root_category->id_parent, array(), '', Tools::getValue('s'));
 
         $offset = 20;
