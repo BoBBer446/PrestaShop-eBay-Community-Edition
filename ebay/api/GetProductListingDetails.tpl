@@ -23,7 +23,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 {if (isset($ean_not_applicable) && $ean_not_applicable == 1)}
-    {assign var="does_not_apply" value="Nicht zutreffend"}
+    {assign var="does_not_apply" value="Does not apply"}
 {else}
     {assign var="does_not_apply" value=""}
 {/if}
