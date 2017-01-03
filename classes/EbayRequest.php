@@ -209,6 +209,10 @@ class EbayRequest
                 file_put_contents(dirname(__FILE__) . '/../log/request.txt', "<?php\n\n", FILE_APPEND | LOCK_EX);
             }
 
+            if ((filesize(dirname(__FILE__) . '/../log/request.txt')/1048576) > 100) {
+
+                    unlink(dirname(__FILE__).'/../log/request.txt');
+            }
             file_put_contents(dirname(__FILE__) . '/../log/request.txt', date('d/m/Y H:i:s') . "\n\n HEADERS : \n" . print_r($this->_buildHeadersSeller($api_call), true), FILE_APPEND | LOCK_EX);
 
             file_put_contents(dirname(__FILE__) . '/../log/request.txt', date('d/m/Y H:i:s') . "\n\n" . $request . "\n\n" . $response . "\n\n-------------------\n\n", FILE_APPEND | LOCK_EX);
@@ -344,11 +348,18 @@ class EbayRequest
         $datas = $this->getUserPreferences();
         $config = (array)$datas->SellerProfileOptedIn;
 
-        if ($config[0] != EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES')) {
-            EbayConfiguration::set($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES', $config[0]);
-            if ($config[0]== 'true') {
+        if ($config[0]== 'true') {
+            $data = 1;
+
+        } else {
+            $data = 0;
+        }
+
+        if ($data != (boolean) EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES')) {
+            if ($data== 1) {
                 $this->importBusinessPolicies();
             }
+            EbayConfiguration::set($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES', $data);
         }
 
 
@@ -606,7 +617,11 @@ class EbayRequest
         if (!$data) {
             return false;
         }
+        $return_policy = $this->_getReturnPolicy($data);
 
+        if (!is_string($return_policy) && is_array($return_policy)) {
+            return $this->error = $return_policy['error'];
+        }
         $currency = new Currency($this->ebay_profile->getConfiguration('EBAY_CURRENCY'));
 
         $vars = array(
@@ -625,7 +640,7 @@ class EbayRequest
             'postal_code' => $this->ebay_profile->getConfiguration('EBAY_SHOP_POSTALCODE'),
             'quantity' => $data['quantity'],
             'item_specifics' => $data['item_specifics'],
-            'return_policy' => $this->_getReturnPolicy($data),
+            'return_policy' => $return_policy,
             'buyer_requirements_details' => $this->_getBuyerRequirementDetails($data),
             'site' => $this->ebay_country->getSiteName(),
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
@@ -659,9 +674,9 @@ class EbayRequest
 
     public static function prepareTitle($data)
     {
-        $product = new Product($data['real_id_product'], false, $data['id_lang']);
-        $features = Feature::getFeatures($data['id_lang']);
-        $features_product = $product->getFrontFeatures($data['id_lang']);
+        $product = new Product($data['real_id_product'], false, Configuration::get('PS_LANG_DEFAULT'));
+        $features = Feature::getFeatures(Configuration::get('PS_LANG_DEFAULT'));
+        $features_product = $product->getFrontFeatures(Configuration::get('PS_LANG_DEFAULT'));
         $tags = array(
             '{TITLE}',
             '{BRAND}',
@@ -674,15 +689,14 @@ class EbayRequest
             $data['reference'],
             $data['ean13'],
         );
+
         foreach ($features as $feature) {
             $tags[] = trim(str_replace(' ', '_', Tools::strtoupper('{FEATURE_' . $feature['name'] . '}')));
-            $hasFeature = array_map(array('EbayRequest', 'getValueOfFeature'), $features_product, $feature);
-            if (isset($hasFeature[0]) && $hasFeature[0]) {
-                $values[] = $hasFeature[0];
-            } else {
-                $values[] = '';
+            foreach ($features_product as $features_prod) {
+                if ($feature['id_feature'] == $features_prod['id_feature']) {
+                    $values[] = $features_prod['value'];
+                }
             }
-
         }
 
         return EbaySynchronizer::fillTemplateTitle($tags, $values, $data['titleTemplate']);
@@ -721,28 +735,66 @@ class EbayRequest
             }
 
             $policies_ship_name = rtrim($policies_ship_name, "-");
-            $seller_ship_prof = Db::getInstance()->getValue('SELECT `id` FROM ' . _DB_PREFIX_ . 'ebay_business_policies WHERE `name` ="' . $policies_ship_name . '"');
+            $seller_ship_prof = Db::getInstance()->getValue('SELECT `id_bussines_Policie` FROM ' . _DB_PREFIX_ . 'ebay_business_policies WHERE `name` ="' . $policies_ship_name . '"');
 
-            if (empty($seller_ship_prof)) {
+            if (empty($seller_ship_prof) || $seller_ship_prof == null) {
+                $dataNewShipp = array(
+                    'ProfileType' => 'SHIPPING',
+                    'ProfileName' => $policies_ship_name,
+
+                );
+                $name_shipping = EbayBussinesPolicies::addShipPolicies($dataNewShipp, $this->ebay_profile->id);
+
                 $vars = array(
                     'excluded_zones' => $data['shipping']['excludedZone'],
                     'national_services' => $data['shipping']['nationalShip'],
                     'international_services' => $data['shipping']['internationalShip'],
                     'currency_id' => $this->ebay_country->getCurrency(),
                     'ebay_site_id' => $this->ebay_profile->ebay_site_id,
-                    'shipping_name' => $policies_ship_name,
+                    'shipping_name' => 'Prestashop-Ebay-'.$name_shipping,
                     'description' => 'PrestaShop_' . $namedesc,
                 );
                 $this->smarty->assign($vars);
                 $response = $this->_makeRequest('addSellerProfile', $vars, 'seller');
+                $this->_logApiCall('addSellerProfile', $vars, $response, $data['id_product']);
+                if (isset($response->ack) && (string)$response->ack != 'Success' && (string)$response->ack != 'Warning') {
+                    if ($response->errorMessage->error->errorId == '178149') {
+                        $dataProf = array(
+                        'id' => $name_shipping,
+                        'id_bussines_Policie' => (string) $response->errorMessage->error->parameter,
+                             );
+                        EbayBussinesPolicies::updateShipPolicies($dataProf, $this->ebay_profile->id);
+                    } else {
+                        $this->_checkForErrors($response);
+
+                        $error = '';
+                        $error .= $response->errorMessage->error->errorId . ' : ';
+                        $error .= (string)$response->errorMessage->error->message;
+
+                        if (isset($response->errorMessage->error->parameter)) {
+                            $error .= ' ' . (string)$response->errorMessage->error->parameter;
+                        }
+
+                        if (!Tools::isEmpty($response->errorMessage->error->errorId)) {
+                            $context = Context::getContext();
+                            $error .= '<a class="kb-help" data-errorcode="' . (int)$response->errorMessage->error->errorId . '"';
+                            $error .= ' data-module="ebay" data-lang="' . $context->language->iso_code . '"';
+                            $error .= ' module_version="1.11.0" prestashop_version="' . _PS_VERSION_ . '"></a>';
+                        }
 
 
-                $dataProf = array(
-                    'ProfileType' => 'SHIPPING',
-                    'ProfileName' => $response->shippingPolicyProfile->profileName,
-                    'ProfileID' => $response->shippingPolicyProfile->profileId,
-                );
-                EbayBussinesPolicies::addPolicies($dataProf, $this->ebay_profile->id);
+                        return array('error' => $error);
+
+                        Db::getInstance()->getValue('DELETE  FROM ' . _DB_PREFIX_ . 'ebay_business_policies WHERE `id` = ' . $name_shipping);
+                    }
+                } else {
+                    $dataProf = array(
+                        'id' => $name_shipping,
+                        'id_bussines_Policie' => $response->shippingPolicyProfile->profileId,
+                    );
+                    EbayBussinesPolicies::updateShipPolicies($dataProf, $this->ebay_profile->id);
+                }
+
             }
             $shippingPolicies = EbayBussinesPolicies::getPoliciesbyName($policies_ship_name, $this->ebay_profile->id);
             if (!empty($seller_ship_prof) && EbayConfiguration::get($this->ebay_profile->id, 'EBAY_RESYNCHBP') == 1) {
@@ -752,15 +804,16 @@ class EbayRequest
                     'international_services' => $data['shipping']['internationalShip'],
                     'currency_id' => $this->ebay_country->getCurrency(),
                     'ebay_site_id' => $this->ebay_profile->ebay_site_id,
-                    'shipping_name' => $policies_ship_name,
+                    'shipping_name' => 'Prestashop-Ebay-'.$shippingPolicies[0]['id'],
                     'description' => 'PrestaShop_' . $namedesc,
                     'shipping_id' => $shippingPolicies[0]['id_bussines_Policie'],
                 );
                 $this->smarty->assign($vars);
                 $response = $this->_makeRequest('setSellerProfile', $vars, 'seller');
+                $this->_logApiCall('setSellerProfile', $vars, $response, $data['id_product']);
             }
 
-            DB::getInstance()->Executes('UPDATE ' . _DB_PREFIX_ . 'ebay_product SET `id_shipping_policies` = "' . $shippingPolicies[0]['id_bussines_Policie'] . '" WHERE `id_product` = "' . $data['id_product'] . '"');
+            DB::getInstance()->Execute('UPDATE ' . _DB_PREFIX_ . 'ebay_product SET `id_shipping_policies` = "' . $shippingPolicies[0]['id_bussines_Policie'] . '" WHERE `id_product` = "' . $data['id_product'] . '"');
 
             $vars = array(
                 'payment_profile_id' => $policies_config[0]['id_payment'],
@@ -768,7 +821,7 @@ class EbayRequest
                 'return_profile_id' => $policies_config[0]['id_return'],
                 'return_profile_name' => $return_name[0]['name'],
                 'shipping_profile_id' => $shippingPolicies[0]['id_bussines_Policie'],
-                'shipping_profile_name' => $shippingPolicies[0]['name'],
+                'shipping_profile_name' => 'Prestashop-Ebay-'.$shippingPolicies[0]['id'],
             );
 
         }
@@ -914,7 +967,7 @@ class EbayRequest
                     if ($this->error != '') {
                         $this->error .= '<br />';
                     }
-
+                    $this->error .= $e->ErrorCode.' : ';
                     $this->error .= (string)$e->LongMessage;
 
                     if (isset($e->ErrorParameters->Value)) {
@@ -949,7 +1002,11 @@ class EbayRequest
         if (!$data) {
             return false;
         }
+        $return_policy = $this->_getReturnPolicy($data);
 
+        if (!is_string($return_policy) && is_array($return_policy)) {
+            return $this->error = $return_policy['error'];
+        }
 
         $vars = array(
             'item_id' => $data['itemID'],
@@ -965,7 +1022,7 @@ class EbayRequest
             'title' => Tools::substr(self::prepareTitle($data), 0, 80),
             'description' => $data['description'],
             'buyer_requirements_details' => $this->_getBuyerRequirementDetails($data),
-            'return_policy' => $this->_getReturnPolicy($data),
+            'return_policy' => $return_policy,
             'item_specifics' => $data['item_specifics'],
             'country' => Tools::strtoupper($this->ebay_profile->getConfiguration('EBAY_SHOP_COUNTRY')),
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
@@ -1021,6 +1078,11 @@ class EbayRequest
         if (!$data) {
             return false;
         }
+        $return_policy = $this->_getReturnPolicy($data);
+
+        if (!is_string($return_policy) && is_array($return_policy)) {
+            return $this->error = $return_policy['error'];
+        }
 
         $currency = new Currency($this->ebay_profile->getConfiguration('EBAY_CURRENCY'));
 
@@ -1036,7 +1098,7 @@ class EbayRequest
             'category_id' => $data['categoryId'],
             'title' => Tools::substr(self::prepareTitle($data), 0, 80),
             'pictures' => isset($data['pictures']) ? $data['pictures'] : array(),
-            'return_policy' => $this->_getReturnPolicy($data),
+            'return_policy' => $return_policy,
             'price_update' => !isset($data['noPriceUpdate']),
             'variations' => $this->_getVariations($data),
             'product_listing_details' => $this->_getProductListingDetails($data),
@@ -1167,6 +1229,11 @@ class EbayRequest
         if (!$data) {
             return false;
         }
+        $return_policy = $this->_getReturnPolicy($data);
+
+        if (!is_string($return_policy) && is_array($return_policy)) {
+            return $this->error = $return_policy['error'];
+        }
 
         // Set Api Call
         $this->apiCall = 'ReviseFixedPriceItem';
@@ -1185,7 +1252,7 @@ class EbayRequest
             'postal_code' => $this->ebay_profile->getConfiguration('EBAY_SHOP_POSTALCODE'),
             'category_id' => $data['categoryId'],
             'pictures' => isset($data['pictures']) ? $data['pictures'] : array(),
-            'return_policy' => $this->_getReturnPolicy($data),
+            'return_policy' => $return_policy,
             'resynchronize' => ($this->ebay_profile->getConfiguration('EBAY_SYNC_OPTION_RESYNC') != 1),
             'title' => Tools::substr(self::prepareTitle($data), 0, 80),
             'description' => $data['description'],

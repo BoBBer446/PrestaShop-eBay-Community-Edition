@@ -224,7 +224,7 @@ class EbaySynchronizer
         }
 
         //Fix for orders that are passed in a country without taxes
-        if ($context->cart && $id_address != 0) {
+        if ($context->cart && isset($id_address) && $id_address != 0) {
             $address->id_country = $country_address;
             $address->save();
         }
@@ -716,6 +716,9 @@ class EbaySynchronizer
         $context->shop = new Shop($ebay_profile->id_shop);
         // Use currency of ebay_profile
         $context->currency = new Currency($ebay_profile->getConfiguration('EBAY_CURRENCY'));
+
+        $id_country = Country::getByIso($ebay_profile->getConfiguration('EBAY_COUNTRY_DEFAULT'));
+        $context->country = new Country($id_country);
 
         $specific_price_output = null;
 

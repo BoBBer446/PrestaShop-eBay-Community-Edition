@@ -92,6 +92,9 @@ class EbayOrder
         $amount_paid_attr = $order_xml->AmountPaid->attributes();
         $this->id_currency = Currency::getIdByIsoCode($amount_paid_attr['currencyID']);
 
+        if ($order_xml->CheckoutStatus->PaymentMethod == 'COD' && isset($order_xml->ShippingDetails->CODCost)) {
+            $this->shippingServiceCost += $order_xml->ShippingDetails->CODCost;
+        }
 
         if (count($order_xml->TransactionArray->Transaction)) {
             $this->email = (string) $order_xml->TransactionArray->Transaction[0]->Buyer->Email;
@@ -200,9 +203,9 @@ class EbayOrder
             $customer->passwd = md5(_COOKIE_KEY_.rand());
             $customer->last_passwd_gen = date('Y-m-d H:i:s');
             $customer->newsletter = 0;
-	    if (empty($this->familyname)) {
-	    	$this->familyname = 'no-send';
-	    }
+            if (empty($this->familyname)) {
+                $this->familyname = 'no-send';
+            }
             $customer->lastname = $format->formatName(EbayOrder::_formatFamilyName($this->familyname));
             $customer->firstname = $format->formatName($this->firstname);
             $customer->active = 1;
@@ -508,19 +511,25 @@ class EbayOrder
 
         //Change context's currency
         $this->context->currency = new Currency($this->carts[$id_shop]->id_currency);
+        try {
+            $payment->validateOrder(
+                (int) $this->carts[$id_shop]->id,
+                Configuration::get('PS_OS_PAYMENT'),
+                (float) $this->carts[$id_shop]->getOrderTotal(true, Cart::BOTH),
+                'eBay '.$this->payment_method.' '.$this->id_order_seller,
+                null,
+                array(),
+                (int) $this->carts[$id_shop]->id_currency,
+                false,
+                $customer->secure_key,
+                version_compare(_PS_VERSION_, '1.5', '>') ? new Shop((int) $id_shop) : null
+            );
+        } catch (Exception $e) {
+            $this->_writeLog($id_ebay_profile, $e->getMessage(), false, 'End of validate order FAIL!');
+            $this->delete();
 
-        $payment->validateOrder(
-            (int) $this->carts[$id_shop]->id,
-            Configuration::get('PS_OS_PAYMENT'),
-            (float) $this->carts[$id_shop]->getOrderTotal(true, Cart::BOTH),
-            'eBay '.$this->payment_method.' '.$this->id_order_seller,
-            null,
-            array(),
-            (int) $this->carts[$id_shop]->id_currency,
-            false,
-            $customer->secure_key,
-            version_compare(_PS_VERSION_, '1.5', '>') ? new Shop((int) $id_shop) : null
-        );
+        }
+
 
         $this->id_orders[$id_shop] = $payment->currentOrder;
 
@@ -702,6 +711,25 @@ class EbayOrder
         $this->id_ebay_order = EbayOrder::insert(array(
             'id_order_ref' => pSQL($this->id_order_ref),
         ));
+        if ($this->id_ebay_order) {
+            $this->_writeLog($id_ebay_profile, 'add_orders', $this->id_ebay_order);
+        }
+    }
+
+    public function delete($id_ebay_profile = null)
+    {
+        db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'ebay_order WHERE id_order_ref = '.$this->id_order_ref);
+
+
+        if ($this->id_ebay_order) {
+            $this->_writeLog($id_ebay_profile, 'deleted_orders', $this->id_ebay_order);
+        }
+
+
+    }
+
+    public function update($id_ebay_profile = null)
+    {
 
         if (is_array($this->id_orders)) {
             foreach ($this->id_orders as $id_shop => $id_order) {
@@ -725,7 +753,7 @@ class EbayOrder
 
             }
             if ($res) {
-                $this->_writeLog($id_ebay_profile, 'add_orders', $res);
+                $this->_writeLog($id_ebay_profile, 'updates_order', $res);
             }
 
         }
@@ -985,6 +1013,15 @@ class EbayOrder
     public static function getIdOrderRefByIdOrder($id_order)
     {
         return Db::getInstance()->getValue('SELECT eo.`id_order_ref`
+			FROM `'._DB_PREFIX_.'ebay_order` eo
+			INNER JOIN `'._DB_PREFIX_.'ebay_order_order` eoo
+			ON eo.`id_ebay_order` = eoo.`id_ebay_order`
+			WHERE eoo.`id_order` = '.(int) $id_order);
+    }
+
+    public static function getIdProfilebyIdOrder($id_order)
+    {
+        return Db::getInstance()->getValue('SELECT eoo.`id_ebay_profile`
 			FROM `'._DB_PREFIX_.'ebay_order` eo
 			INNER JOIN `'._DB_PREFIX_.'ebay_order_order` eoo
 			ON eo.`id_ebay_order` = eoo.`id_ebay_order`

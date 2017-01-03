@@ -52,7 +52,7 @@ class EbayReturnsPolicyConfiguration extends ObjectModel
 
     public function getFields()
     {
-        
+
         $fields = array();
         parent::validateFields();
         if (isset($this->id)) {

@@ -303,8 +303,8 @@ class EbayLogger
                         'datetime'  => $datetime,
                         'severity'  => (int)$severity,
                         'code'      => 0,
-                        'message'   => $msg,
-                        'context'   => $ctx ? Tools::jsonEncode($ctx) : null,
+                        'message'   => pSQL($msg),
+                        'context'   => $ctx ? pSQL(Tools::jsonEncode($ctx)) : null,
                         'backtrace' => $backtrace,
                     )
                 );

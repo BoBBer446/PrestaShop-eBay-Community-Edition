@@ -209,8 +209,7 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
 
 
         ),
-		
-		   'it' => array(
+        'it' => array(
             'site_id' => 101,
             'documentation' => 'it',
             'language' => 'it_IT',
@@ -250,7 +249,7 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             'top_rated_url' => 'http://pages.ebay.de/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.de/help/sell/business-policies.html',
         ),
-		
+
         'gb' => array(
             'site_id' => 3,
             'documentation' => 'en',
@@ -275,8 +274,8 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
 
     );
 
+	#we dont need that
     private static $cuntry_block= array(
-     
 
     );
 
@@ -410,7 +409,7 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             $this->accepted_isos = array_merge($this->accepted_isos, $this->accepted_isos_block);
         }
 
-      
+
         if (isset(self::$country_data[$iso_code]) && isset(self::$country_data[$iso_code][$data])) {
             return self::$country_data[$iso_code][$data];
         } else if (isset(self::$country_data['fr'][$data])) {
