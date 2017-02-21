@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -130,7 +130,7 @@ class Ebay extends Module
     {
         $this->name = 'ebay';
         $this->tab = 'market_place';
-        $this->version = '1.15.3';
+        $this->version = '1.15.4';
         $this->stats_version = '1.0';
 
         $this->author = 'PrestaShop';
@@ -192,10 +192,7 @@ class Ebay extends Module
             // Upgrade eBay module
             if (Configuration::get('EBAY_VERSION') != $this->version) {
                 $this->__upgrade();
-                set_time_limit(3600);
-                Configuration::set('EBAY_VERSION', $this->version);
-                $validatordb = new EbayDbValidator();
-                $validatordb->checkDatabase(false);
+
             }
 
             //if (!empty($_POST) && Tools::getValue('ebay_profile'))
@@ -1464,13 +1461,12 @@ class Ebay extends Module
             $id_ebay_profile = EbayOrder::getIdProfilebyIdOrder($id_order);
             $order = new Order($id_order);
 
-                    $ebay_profile = new EbayProfile($id_ebay_profile);
-
-                    if ($ebay_profile->getConfiguration('EBAY_SEND_TRACKING_CODE')) {
-                        $carrier = new Carrier($order->id_carrier, $ebay_profile->id_lang);
-                        $ebay_request = new EbayRequest($id_ebay_profile);
-                        $ebay_request->updateOrderTracking($id_order_ref, $tracking_number, $carrier->name);
-                    }
+            $ebay_profile = new EbayProfile($id_ebay_profile);
+            if ($ebay_profile->getConfiguration('EBAY_SEND_TRACKING_CODE')) {
+                $carrier = new Carrier($order->id_carrier, $ebay_profile->id_lang);
+                $ebay_request = new EbayRequest($id_ebay_profile);
+                $ebay_request->updateOrderTracking($id_order_ref, $tracking_number, $carrier->name);
+            }
         }
 
         if (!((version_compare(_PS_VERSION_, '1.5.1', '>=')
@@ -1486,6 +1482,12 @@ class Ebay extends Module
      */
     public function getContent()
     {
+        if (Configuration::get('EBAY_VERSION') != $this->version) {
+            set_time_limit(3600);
+            Configuration::set('EBAY_VERSION', $this->version);
+            $validatordb = new EbayDbValidator();
+            $validatordb->checkDatabase(false);
+        }
         
         if (version_compare(_PS_VERSION_, '1.5', '>') && Shop::getContext() != Shop::CONTEXT_SHOP) {
             $this->bootstrap = true;
@@ -1618,7 +1620,7 @@ class Ebay extends Module
         } else {
             $main_tab = 'settings';
         }
-
+        $request = new EbayRequest();
         $this->smarty->assign(array(
             'img_stats' => ($this->ebay_country->getImgStats()),
             'alert' => $alerts,
@@ -1631,7 +1633,7 @@ class Ebay extends Module
             'is_version_one_dot_five' => version_compare(_PS_VERSION_, '1.5', '>'),
             'is_version_one_dot_five_dot_one' => (version_compare(_PS_VERSION_, '1.5.1', '>=') && version_compare(_PS_VERSION_, '1.5.2', '<')),
             'css_file' => $this->_path.'views/css/ebay_back.css',
-            'font_awesome_css_file' => $this->_path.'views/css/font-awesome/css/font-awesome.min.css',
+            'font_awesome_css_file' => $this->_path.'views/css/font-awesome.min.css',
             'tooltip' => $this->_path.'views/js/jquery.tooltipster.min.js',
             'tips202' => $this->_path.'views/js/202tips.js',
             'noConflicts' => $this->_path.'views/js/jquery.noConflict.php?version=1.7.2',
@@ -1666,6 +1668,7 @@ class Ebay extends Module
             'top_rated_url' => $this->ebay_country->getTopRatedUrl(),
             '_module_dir_' => _MODULE_DIR_,
             'date' => pSQL(date('Ymdhis')),
+            'debug' => ($request->getDev())? 1:0,
         ));
 
         // test if multishop Screen and all shops
