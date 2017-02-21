@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -285,31 +285,33 @@ class EbayProfile extends ObjectModel
     public function setPicturesSettings()
     {
         // Default
-        if ($medium = ImageType::getByNameNType('thickbox', 'products')) {
-            $sizeMedium = (int) $medium['id_image_type'];
-        } elseif ($medium = ImageType::getByNameNType('thickbox_default', 'products')) {
-            $sizeMedium = (int) $medium['id_image_type'];
+        $conf_img_default= $this->getConfiguration('EBAY_PICTURE_SIZE_DEFAULT');
+        if (!empty($conf_img_default)) {
+            $sizeMedium = $conf_img_default;
         } else {
             $sizeMedium = 0;
         }
 
+
+
+
         // Small
-        if ($small = ImageType::getByNameNType('small', 'products')) {
-            $sizeSmall = (int) $small['id_image_type'];
-        } elseif ($small = ImageType::getByNameNType('small_default', 'products')) {
-            $sizeSmall = (int) $small['id_image_type'];
+        $conf_img_small= $this->getConfiguration('EBAY_PICTURE_SIZE_SMALL');
+        if (!empty($conf_img_small)) {
+            $sizeSmall = $conf_img_small;
         } else {
             $sizeSmall = 0;
         }
 
+
         // Large
-        if ($large = ImageType::getByNameNType('large', 'products')) {
-            $sizeBig = (int) $large['id_image_type'];
-        } elseif ($large = ImageType::getByNameNType('large_default', 'products')) {
-            $sizeBig = (int) $large['id_image_type'];
+        $conf_img_big= $this->getConfiguration('EBAY_PICTURE_SIZE_BIG');
+        if (!empty($conf_img_big)) {
+            $sizeBig = $conf_img_big;
         } else {
             $sizeBig = 0;
         }
+
 
         $this->setConfiguration('EBAY_PICTURE_SIZE_DEFAULT', $sizeMedium);
         $this->setConfiguration('EBAY_PICTURE_SIZE_SMALL', $sizeSmall);

@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -36,13 +36,18 @@ class EbayFormStoreCategoryTab extends EbayTab
         $user_profile = $ebay_request->getUserProfile($this->ebay_profile->ebay_user_identifier);
 
         $store_categories = EbayStoreCategory::getStoreCategories($this->ebay_profile->id);
-
+        
         $not_compatible_names = array();
         if ($store_categories['not_compatible']) {
             foreach ($store_categories['not_compatible'] as $cat) {
                 $not_compatible_names[] = $cat['name'];
             }
         }
+
+        $root_category = Category::getRootCategory();
+        $categories = Category::getCategories($this->ebay_profile->id_lang);
+
+        $category_list = $this->ebay->getChildCategories($categories, $root_category->id_parent, array(), '');
 
         $template_vars = array(
             'configs' => $configs,
@@ -53,7 +58,7 @@ class EbayFormStoreCategoryTab extends EbayTab
             'tab_module' => Tools::getValue('tab_module'),
             'module_name' => Tools::getValue('module_name'),
             'tab' => Tools::getValue('tab'),
-            'nb_categorie' => count(Category::getCategories($this->context->cookie->id_lang, true, false)),
+            'nb_categorie' => count($category_list),
             'has_store_categories' => (count($store_categories['compatible']) > 1),
             'not_compatible_store_categories' => implode(', ', $not_compatible_names),
             'has_ebay_shop' => (bool) ($user_profile && $user_profile['StoreUrl']),

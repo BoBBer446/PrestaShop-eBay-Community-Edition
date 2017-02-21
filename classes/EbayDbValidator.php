@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2016 PrestaShop SA
+ * @copyright 2007-2017 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
@@ -52,6 +52,7 @@ class EbayDbValidator
             'level' => array('type' => 'tinyint', 'length' => 1),
             'is_multi_sku' => array('type' => 'tinyint', 'length' => 1, 'null' => true),
             'name' => array('type' => 'varchar', 'length' => 255),
+            'k_type' => array('type' => 'tinyint', 'length' => 1, 'null' => true),
         ),
 
         'ebay_category_condition' => array(
@@ -126,7 +127,7 @@ class EbayDbValidator
         ),
 
         'ebay_order' => array(
-            'id_ebay_order' => array('type' => 'int', 'length' => 11, 'primary' => true),
+            'id_ebay_order' => array('type' => 'int', 'length' => 11, 'primary' => true, 'auto_increment' => true),
             'id_order_ref' => array('type' => 'varchar', 'length' => 128),
             'id_order' => array('type' => 'int', 'length' => 11),
         ),

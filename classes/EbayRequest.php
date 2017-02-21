@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2016 PrestaShop SA
+ * @copyright 2007-2017 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
@@ -57,6 +57,9 @@ class EbayRequest
     /** @var Context */
     private $context;
     private $apiUrlSeller;
+
+    public static $userProfileCache;
+    public static $userPreferencesCache;
 
     private $write_api_logs;
 
@@ -253,7 +256,7 @@ class EbayRequest
 
             // Regulates versioning of the XML interface for the API
 
-            'X-EBAY-SOA-GLOBAL-ID: EBAY-' . $this->ebay_country->getIsoCode(),
+            'X-EBAY-SOA-GLOBAL-ID: EBAY-' . (($this->ebay_profile->ebay_site_id == 23)? 'FRBE': strtoupper(EbayCountrySpec::getIsoCodeBySiteId($this->ebay_profile->ebay_site_id))),
             'X-EBAY-SOA-OPERATION-NAME: ' . $api_call,
             'X-EBAY-SOA-SERVICE-VERSION: 1.0.0',
             'X-EBAY-SOA-SECURITY-TOKEN: ' . ($this->ebay_profile ? $this->ebay_profile->getToken() : ''),
@@ -327,25 +330,36 @@ class EbayRequest
      */
     public function getUserProfile($username)
     {
-        //Change API URL
-        $apiUrl = $this->apiUrl;
-        $this->apiUrl = ($this->dev) ? 'http://open.api.sandbox.ebay.com/shopping?' : 'http://open.api.ebay.com/shopping?';
-        $response = $this->_makeRequest('GetUserProfile', array('user_id' => $username), true);
 
-        if ($response === false) {
-            return false;
+        if (empty(self::$userProfileCache)) {
+            //Change API URL
+            $apiUrl = $this->apiUrl;
+            $this->apiUrl = ($this->dev) ? 'http://open.api.sandbox.ebay.com/shopping?' : 'http://open.api.ebay.com/shopping?';
+            $response = $this->_makeRequest('GetUserProfile', array('user_id' => $username), true);
+            if ($response === false) {
+                return false;
+            }
+
+            $userProfile = array(
+                'StoreUrl' => $response->User->StoreURL,
+                'StoreName' => $response->User->StoreName,
+                'SellerBusinessType' => $response->User->SellerBusinessType
+            );
+
+            self::$userProfileCache = $userProfile;
+            $this->apiUrl = $apiUrl;
+        } else {
+            $userProfile = self::$userProfileCache;
         }
 
-        $userProfile = array(
-            'StoreUrl' => $response->User->StoreURL,
-            'StoreName' => $response->User->StoreName,
-            'SellerBusinessType' => $response->User->SellerBusinessType,
-        );
+        if (empty(self::$userPreferencesCache)) {
+            $datas = $this->getUserPreferences();
+            self::$userPreferencesCache = $datas;
+        } else {
+            $datas = self::$userPreferencesCache;
+        }
 
 
-        $this->apiUrl = $apiUrl;
-
-        $datas = $this->getUserPreferences();
         $config = (array)$datas->SellerProfileOptedIn;
 
         if ($config[0]== 'true') {
@@ -645,6 +659,7 @@ class EbayRequest
             'site' => $this->ebay_country->getSiteName(),
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
             'product_listing_details' => $this->_getProductListingDetails($data),
+            'ktype' => isset($data['ktype'])?$data['ktype']:null,
 
         );
         if (EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES') == 0) {
@@ -746,6 +761,7 @@ class EbayRequest
                 $name_shipping = EbayBussinesPolicies::addShipPolicies($dataNewShipp, $this->ebay_profile->id);
 
                 $vars = array(
+                    'dispatch_time_max' => $this->ebay_profile->getConfiguration('EBAY_DELIVERY_TIME'),
                     'excluded_zones' => $data['shipping']['excludedZone'],
                     'national_services' => $data['shipping']['nationalShip'],
                     'international_services' => $data['shipping']['internationalShip'],
@@ -799,6 +815,7 @@ class EbayRequest
             $shippingPolicies = EbayBussinesPolicies::getPoliciesbyName($policies_ship_name, $this->ebay_profile->id);
             if (!empty($seller_ship_prof) && EbayConfiguration::get($this->ebay_profile->id, 'EBAY_RESYNCHBP') == 1) {
                 $vars = array(
+                    'dispatch_time_max' => $this->ebay_profile->getConfiguration('EBAY_DELIVERY_TIME'),
                     'excluded_zones' => $data['shipping']['excludedZone'],
                     'national_services' => $data['shipping']['nationalShip'],
                     'international_services' => $data['shipping']['internationalShip'],
@@ -1027,6 +1044,7 @@ class EbayRequest
             'country' => Tools::strtoupper($this->ebay_profile->getConfiguration('EBAY_SHOP_COUNTRY')),
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
             'product_listing_details' => $this->_getProductListingDetails($data),
+            'ktype' => isset($data['ktype'])?$data['ktype']:null,
 
         );
         if (EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES') == 0) {
@@ -1106,6 +1124,7 @@ class EbayRequest
             'site' => $this->ebay_country->getSiteName(),
             'item_specifics' => $data['item_specifics'],
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
+            'ktype' => isset($data['ktype'])? $data['ktype'] : null,
         );
 
         if (EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES') == 0) {
@@ -1262,6 +1281,7 @@ class EbayRequest
             'product_listing_details' => $this->_getProductListingDetails($data),
             'item_specifics' => $data['item_specifics'],
             'autopay' => $this->ebay_profile->getConfiguration('EBAY_IMMEDIATE_PAYMENT'),
+            'ktype' => isset($data['ktype'])?$data['ktype']:array(),
         );
 
         if (EbayConfiguration::get($this->ebay_profile->id, 'EBAY_BUSINESS_POLICIES') == 0) {
@@ -1520,6 +1540,12 @@ class EbayRequest
             'error_language' => $this->ebay_country->getLanguage(),
         );
         $response = $this->_makeRequest('GetUserPreferences', $vars);
+
+        # update OutOfStockControlPreference if it change
+        $out_of_stock = ($response->OutOfStockControlPreference == 'true') ? true : false;
+        if ($out_of_stock != (bool)EbayConfiguration::get($this->ebay_profile->id, 'EBAY_OUT_OF_STOCK')) {
+            EbayConfiguration::set($this->ebay_profile->id, 'EBAY_OUT_OF_STOCK', $out_of_stock);
+        }
 
         return $response->SellerProfilePreferences;
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2016 PrestaShop SA
+ * @copyright 2007-2017 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
@@ -30,7 +30,7 @@ class EbayCategory
     private $id_category_ref; /* eBay Category id */
     private $id_country; /* eBay Site id. naming is not great */
     private $is_multi_sku;
-
+    private $k_type;
     private $ebay_profile;
 
     private $percent;
@@ -97,6 +97,15 @@ class EbayCategory
         }
 
         return $this->is_multi_sku;
+    }
+
+    public function isKtype()
+    {
+
+            $this->k_type = EbayCategory::getKtype((int)$this->id_category_ref, $this->id_country);
+
+
+        return $this->k_type;
     }
 
     public function getPercent()
@@ -311,6 +320,18 @@ class EbayCategory
         return $row['is_multi_sku'];
     }
 
+    public static function getKtype($id_category_ref, $ebay_site_id)
+    {
+        $row = Db::getInstance()->getRow('SELECT `k_type`
+			FROM `'._DB_PREFIX_.'ebay_category`
+			WHERE `id_category_ref` = '.(int)$id_category_ref.'
+			AND `id_country` = '.(int)$ebay_site_id);
+
+        return $row['k_type'];
+    }
+
+
+
     public static function areCategoryLoaded($ebay_site_id)
     {
         if (Db::getInstance()->getValue('SELECT COUNT(*) FROM '._DB_PREFIX_.'ebay_category ec WHERE ec.`id_country` = '.(int)$ebay_site_id) == 0) {
@@ -318,5 +339,17 @@ class EbayCategory
         }
 
         return true;
+    }
+
+    public static function setKtypeConfiguration($id_category_ref, $value, $id_ebay_profile)
+    {
+
+        $ebay_profile= new EbayProfile($id_ebay_profile);
+        $ebay_site_id = $ebay_profile->ebay_site_id;
+        $db = Db::getInstance();
+        $db->autoExecute(_DB_PREFIX_.'ebay_category', array(
+            'k_type' => ($value == 'true') ? 1 : 0,
+            ), 'UPDATE', '`id_category_ref` = '.(int)$id_category_ref .' AND `id_country` = ' . (int)$ebay_site_id, 0, true, true);
+
     }
 }

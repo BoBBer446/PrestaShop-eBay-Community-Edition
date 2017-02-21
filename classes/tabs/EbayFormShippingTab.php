@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -78,13 +78,9 @@ class EbayFormShippingTab extends EbayTab
             if ($zone['carriers']) {
                 foreach ($zone['carriers'] as &$carrier) {
                     $psCarriersPr = new Carrier($carrier['id_carrier']);
-		    $sql = 'SELECT MIN(d.`price`)
-					FROM `'._DB_PREFIX_.'delivery` d
-					
-					WHERE d.`id_zone` = '.$zone['id_zone'].'
-						AND d.`id_carrier` = '.(int)$carrier['id_carrier'];
-            $result = Db::getInstance()->getValue($sql);
-	    
+                    $sql = 'SELECT MIN(d.`price`) FROM `'._DB_PREFIX_.'delivery` d WHERE d.`id_zone` = '.(int)$zone['id_zone'].' AND d.`id_carrier` = '.(int)$carrier['id_carrier'];
+                    $result = Db::getInstance()->getValue($sql);
+
                     if ($result == null) {
                         $carrier['price'] = 0;
                     } else {

@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -206,9 +206,8 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             'picture_url' => 'http://pages.ebay.at/help/sell/pictures.html',
             'top_rated_url' => 'http://pages.ebay.at/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.at/help/sell/business-policies.html',
-
-
         ),
+
         'it' => array(
             'site_id' => 101,
             'documentation' => 'it',
@@ -249,7 +248,6 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             'top_rated_url' => 'http://pages.ebay.de/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.de/help/sell/business-policies.html',
         ),
-
         'gb' => array(
             'site_id' => 3,
             'documentation' => 'en',
@@ -271,13 +269,9 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             'url_help_business_policies' => 'http://pages.ebay.co.uk/help/sell/business-policies.html',
         ),
 
-
     );
 
-	#we dont need that
-    private static $cuntry_block= array(
-
-    );
+    private static $cuntry_block= array( );
 
 
 
@@ -409,7 +403,7 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             $this->accepted_isos = array_merge($this->accepted_isos, $this->accepted_isos_block);
         }
 
-
+      
         if (isset(self::$country_data[$iso_code]) && isset(self::$country_data[$iso_code][$data])) {
             return self::$country_data[$iso_code][$data];
         } else if (isset(self::$country_data['fr'][$data])) {

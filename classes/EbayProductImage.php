@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -19,7 +19,7 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
+ *  @copyright 2007-2017 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
@@ -28,7 +28,7 @@ require_once dirname(__FILE__).'/EbayRequest.php';
 
 class EbayProductImage
 {
-    public static function getEbayUrl($ps_url, $ebay_image_name)
+    public static function getEbayUrl($ps_url, $ebay_image_name, $conditions = array())
     {
         $db = Db::getInstance();
 
@@ -51,6 +51,7 @@ class EbayProductImage
             if (version_compare(_PS_VERSION_, '1.5', '>')) {
                 $db->insert('ebay_product_image', $data);
             } else {
+
                 foreach ($conditions as $condition) {
                     $db->autoExecute(_DB_PREFIX_.'ebay_product_image', $data, 'INSERT');
                 }
