@@ -22,6 +22,14 @@ Man kann jetzt Rahmenbedingungen Nutzen die bei eBay hinterlegt sind!
  
 
 Aktuell:
+Kompatibilitätv1.4.0.2 - v1.6.1.11
+Version1.15.4 (16.02.2017) 
+
+OutOfStockStatus fix (detection & product targeted)
+Upgrader bug from 1.13.2 & previous
+ Ensure "Dispatch time" update updates Shipping Policies => force update
+Fatal on __getprices
+Reduce calls to getuserProfile from 3 to 1
 
 1.15.2 – Early December 2016 – Bug fix
 
