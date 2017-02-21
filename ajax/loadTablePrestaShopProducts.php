@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2016 PrestaShop
+ * 2007-2017 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -18,9 +18,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2016 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2017 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
@@ -36,6 +36,11 @@ $ebay_request = new EbayRequest();
 if (!Configuration::get('EBAY_SECURITY_TOKEN') || Tools::getValue('token') != Configuration::get('EBAY_SECURITY_TOKEN')) {
     return Tools::safeOutput(Tools::getValue('not_logged_str'));
 }
+
+/** @var Shop $shop */
+$shop = new Shop(Shop::getCurrentShop());
+/** @var ShopGroup $shopGroup */
+$shopGroup = $shop->getGroup();
 
 $page = (int) Tools::getValue('p', 0);
 if ($page < 2) {
@@ -117,8 +122,14 @@ $query .= ' INNER JOIN `'._DB_PREFIX_.'category_lang` cl
         WHERE ep2.`id_product` = ep.`id_product`
         AND ep2.`id_ebay_profile` = ep.`id_ebay_profile`
     )'.// With this inner query we ensure to only return one row of ebay_product. The id_product_ref is only relevant for products having only one correspondant product on eBay
-'
-    WHERE 1'.$ebay->addSqlRestrictionOnLang('pl').$ebay->addSqlRestrictionOnLang('cl').$ebay->addSqlRestrictionOnLang('s');
+    '
+    WHERE 1'.$ebay->addSqlRestrictionOnLang('pl').$ebay->addSqlRestrictionOnLang('cl');
+
+if ($shopGroup->share_stock) {
+    $query .= 'AND s.id_shop_group = '.(int)$shopGroup->id;
+} else {
+    $query .= $ebay->addSqlRestrictionOnLang('s');
+}
 
 if ($search) {
     $query .= ' AND pl.`name` LIKE \'%'.$search.'%\'';
