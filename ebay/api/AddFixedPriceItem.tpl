@@ -1,5 +1,5 @@
 {*
-* 2007-2016 PrestaShop
+* 2007-2017 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2016 PrestaShop SA
+*  @copyright 2007-2017 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -68,7 +68,7 @@
 		{/if}
 		<PostalCode>{$postal_code|escape:'htmlall':'UTF-8'}</PostalCode>
 		{if isset($quantity)}
-			<Quantity>{$quantity|escape:'htmlall':'UTF-8'}</Quantity>
+			<Quantity>{if $quantity < 0}0{else}{$quantity|escape:'htmlall':'UTF-8'}{/if}</Quantity>
 		{/if}
 		<ItemSpecifics>
 			{foreach from=$item_specifics key=name item=value}
@@ -78,6 +78,23 @@
 				</NameValueList>
 			{/foreach}
 		</ItemSpecifics>
+
+		{if isset($ktype)}
+		<ItemCompatibilityList>
+			<Compatibility>
+				<NameValueList>
+					<Name>KType</Name>
+					{foreach from=$ktype key=name item=value}
+
+							<Value><![CDATA[{$value}]]></Value>
+
+					{/foreach}
+				</NameValueList>
+
+			</Compatibility>
+		</ItemCompatibilityList>
+		{/if}
+
 		{$return_policy|cleanHtml}
         {if isset($variations)}
             {$variations|cleanHtml}
