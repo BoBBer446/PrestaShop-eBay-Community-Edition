@@ -31,7 +31,7 @@ if (!in_array('Ebay', get_declared_classes())) {
 class EbayCountrySpec
 {
     public $country;
-    public $accepted_isos = array( 'es', 'fr', 'nl', 'pl', 'be','it', 'gb', 'de');
+    public $accepted_isos = array( 'es', 'fr', 'nl', 'pl', 'be','it', 'gb', 'de', 'ie');
     protected $ebay_iso;
     public $accepted_isos_block = array();
     private $dev;
@@ -267,6 +267,27 @@ http://pages.ebay.pl/help/search/questions/search-completed-listings.html',
             'picture_url' => 'http://sellercentre.ebay.co.uk/new-picture-standards',
             'top_rated_url' => 'http://pages.ebay.co.uk/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.co.uk/help/sell/business-policies.html',
+        ),
+        
+        'ie' => array(
+            'site_id' => 205,
+            'documentation' => 'ie',
+            'language' => 'ie_IE',
+            'currency' => 'EUR',
+            'site_name' => 'Ireland',
+            'site_extension' => 'ie',
+            'img_stats' => null,
+            'iso_code' => 'ie',
+            'signin' => 'https://signin.ebay.ie/ws/eBayISAPI.dll',
+            'signin_sandbox' => 'https://signin.sandbox.ebay.ie/ws/eBayISAPI.dll',
+            'signin_pro_url' => 'https://scgi.ebay.ie/ws/eBayISAPI.dll?RegisterEnterInfo&bizflow=2',
+            'pro_url' => 'http://pages.ebay.ie/businesscentre/index.html',
+            'fee_url' => 'http://pages.ebay.ie/help/sell/businessfees.html',
+            'title_desc_url' => 'http://pages.ebay.ie/help/sell/title_desc_ov.html',
+            'similar_items_url' => 'http://pages.ebay.ie/help/search/questions/search-completed-listings.html',
+            'picture_url' => 'http://pages.ebay.ie/businesscentre/photocenter.html',
+            'top_rated_url' => 'http://pages.ebay.ie/help/sell/top-rated.html',
+            'url_help_business_policies' => 'http://pages.ebay.ie/help/sell/business-policies.html',
         ),
 
     );
