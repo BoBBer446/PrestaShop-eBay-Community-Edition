@@ -30,7 +30,7 @@ include_once dirname(__FILE__).'/../ebay.php';
 
 $ebay = new Ebay();
 
-$ebay_profile = new EbayProfile((int) Tools::getValue('profile'));
+$ebay_profile = new EbayProfile((int)Tools::getValue('profile'));
 $ebay_request = new EbayRequest();
 
 if (!Configuration::get('EBAY_SECURITY_TOKEN') || Tools::getValue('token') != Configuration::get('EBAY_SECURITY_TOKEN')) {
@@ -42,16 +42,16 @@ $shop = new Shop(Shop::getCurrentShop());
 /** @var ShopGroup $shopGroup */
 $shopGroup = $shop->getGroup();
 
-$page = (int) Tools::getValue('p', 0);
+$page = (int)Tools::getValue('p', 0);
 if ($page < 2) {
     $page = 1;
 }
 
-$limit = 20;
+$limit  = 20;
 $offset = $limit * ($page - 1);
 
 $on_ebay_only = (Tools::getValue('mode') == 'on_ebay');
-$search = Tools::getValue('s');
+$search       = Tools::getValue('s');
 
 $is_one_five = version_compare(_PS_VERSION_, '1.5', '>');
 
@@ -81,7 +81,7 @@ if ($is_one_five) {
     $query .= '
         INNER JOIN  `'._DB_PREFIX_.'product_shop` AS ps
         ON p.id_product = ps.id_product
-        AND ps.id_shop = '.(int) $ebay_profile->id_shop;
+        AND ps.id_shop = '.(int)$ebay_profile->id_shop;
 }
 
 $query .= ' INNER JOIN `'._DB_PREFIX_.'product_lang` pl
@@ -137,7 +137,7 @@ if ($search) {
 
 //$query .= ' GROUP BY s.`id_product`';
 
-$queryCount = preg_replace('/SELECT ([a-zA-Z.,` ]+) FROM /', 'SELECT COUNT(*) FROM ', $query);
+$queryCount = preg_replace('/SELECT ([a-zA-Z.,`\s_]+) FROM /', 'SELECT COUNT(*) FROM ', $query);
 $nbProducts = Db::getInstance()->getValue($queryCount);
 
 $res = Db::getInstance()->executeS($query.' ORDER BY p.`id_product` ASC LIMIT '.$offset.', '.$limit);
@@ -148,16 +148,11 @@ $category_list = $ebay->getChildCategories(Category::getCategories($ebay_profile
 // eBay categories
 $ebay_categories = EbayCategoryConfiguration::getEbayCategories($ebay_profile->id);
 
-$context = Context::getContext();
-$employee = new Employee((int) Tools::getValue('id_employee'));
+$context           = Context::getContext();
+$employee          = new Employee((int)Tools::getValue('id_employee'));
 $context->employee = $employee;
 
 foreach ($res as &$row) {
-
-    if ($row['EbayProductRef']) {
-        $row['link'] = EbayProduct::getEbayUrl($row['EbayProductRef'], $ebay_request->getDev());
-    }
-
     foreach ($category_list as $cat) {
         if ($cat['id_category'] == $row['id_category']) {
             $row['category_full_name'] = $cat['name'];
@@ -167,35 +162,37 @@ foreach ($res as &$row) {
     }
 
     if ($row['id_category_ref']) {
-
         foreach ($ebay_categories as $cat) {
             if ($cat['id'] == $row['id_category_ref']) {
                 $row['ebay_category_full_name'] = $cat['name'];
                 break;
             }
         }
-
+        $ebayCategory                  = new EbayCategory($ebay_profile, $row['id_category_ref']);
+        $row['EbayCategoryIsMultiSku'] = $ebayCategory->isMultiSku();
     }
 
     if ($ebay_profile->getConfiguration('EBAY_SYNC_PRODUCTS_MODE') == 'A') {
-        $row['sync'] = (bool) $row['id_category_ref'];
+        $row['sync'] = (bool)$row['id_category_ref'];
     }
     // only true if category synced with an eBay category
 
     $link = $context->link;
-
-    $row['link'] = (method_exists($link, 'getAdminLink') ? ($link->getAdminLink('AdminProducts').'&id_product='.(int) $row['id_product'].'&updateproduct') : $link->getProductLink((int) $row['id_product']));
-
+    
+    $row['link'] = (method_exists($link, 'getAdminLink') ? ($link->getAdminLink('AdminProducts') . '&id_product=' . (int)$row['id_product'] . '&updateproduct') : $link->getProductLink((int)$row['id_product']));
+    if ($row['EbayProductRef']) {
+        $row['link'] = EbayProduct::getEbayUrl($row['EbayProductRef'], $ebay_request->getDev());
+    }
 }
 
 $smarty = $context->smarty;
 // Smarty datas
 $template_vars = array(
-    'nbPerPage' => $limit,
-    'nbProducts' => $nbProducts,
+    'nbPerPage'      => $limit,
+    'nbProducts'     => $nbProducts,
     'noProductFound' => Tools::getValue('ch_no_prod_str'),
-    'p' => $page,
-    'products' => $res,
+    'p'              => $page,
+    'products'       => $res,
 );
 
 $smarty->assign($template_vars);
