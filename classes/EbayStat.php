@@ -86,7 +86,6 @@ class EbayStat
         } else {
             return __PS_BASE_URI__;
         }
-
     }
 
     public function save()

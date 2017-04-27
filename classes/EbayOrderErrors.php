@@ -26,7 +26,6 @@
 
 class EbayOrderErrors extends ObjectModel
 {
-
     public $error;
     public $id_order_seller;
     public $date_add;
@@ -67,7 +66,6 @@ class EbayOrderErrors extends ObjectModel
         foreach ($sql as $q) {
             Db::getInstance()->Execute($q);
         }
-
     }
 
     public static function uninstall()
@@ -78,7 +76,6 @@ class EbayOrderErrors extends ObjectModel
         foreach ($sql as $q) {
             Db::getInstance()->Execute($q);
         }
-
     }
 
     public static function truncate()
@@ -106,6 +103,5 @@ class EbayOrderErrors extends ObjectModel
         } else {
             return false;
         }
-
     }
 }

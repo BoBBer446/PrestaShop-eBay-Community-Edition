@@ -36,7 +36,7 @@ class EbayFormStoreCategoryTab extends EbayTab
         $user_profile = $ebay_request->getUserProfile($this->ebay_profile->ebay_user_identifier);
 
         $store_categories = EbayStoreCategory::getStoreCategories($this->ebay_profile->id);
-        
+
         $not_compatible_names = array();
         if ($store_categories['not_compatible']) {
             foreach ($store_categories['not_compatible'] as $cat) {
@@ -85,7 +85,6 @@ class EbayFormStoreCategoryTab extends EbayTab
                     EbayStoreCategoryConfiguration::update($this->ebay_profile->id, $ebay_category_id, $id_category);
                 }
             }
-
         }
 
         if (Tools::getValue('ajax')) {

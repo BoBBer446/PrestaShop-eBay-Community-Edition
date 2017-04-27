@@ -97,6 +97,18 @@ class EbayProfile extends ObjectModel
         return parent::__construct($id, $id_lang, $id_shop);
     }
 
+    public static function getEbayProfileByUserSite($ebay_user, $site_name, $id_shop)
+    {
+        $site_id = EbayCountrySpec::getSiteIdBySiteName($site_name);
+        $sql = 'SELECT `id_ebay_profile` FROM `' . _DB_PREFIX_ . 'ebay_profile` WHERE `ebay_user_identifier` = "' . pSQL($ebay_user) . '" AND `ebay_site_id` = ' . (int)$site_id . ' AND `id_shop` = ' . (int)$id_shop . ';';
+        $result = Db::getInstance()->getRow($sql);
+        if ($result && isset($result['id_ebay_profile'])) {
+            return $result['id_ebay_profile'];
+        }
+
+        return false;
+    }
+
     public function getReturnsPolicyConfiguration()
     {
 
@@ -159,7 +171,6 @@ class EbayProfile extends ObjectModel
         foreach ($configurations as $configuration) {
             $this->configurations[$configuration['name']] = $configuration['value'];
         }
-
     }
 
     public function setConfiguration($name, $value, $html = false)
@@ -178,7 +189,6 @@ class EbayProfile extends ObjectModel
             } else {
                 $res = Db::getInstance()->autoExecute(_DB_PREFIX_.'ebay_configuration', $data, 'INSERT');
             }
-
         }
         if ($res) {
             $this->configurations[$name] = $value;
@@ -292,9 +302,6 @@ class EbayProfile extends ObjectModel
             $sizeMedium = 0;
         }
 
-
-
-
         // Small
         $conf_img_small= $this->getConfiguration('EBAY_PICTURE_SIZE_SMALL');
         if (!empty($conf_img_small)) {
@@ -303,7 +310,6 @@ class EbayProfile extends ObjectModel
             $sizeSmall = 0;
         }
 
-
         // Large
         $conf_img_big= $this->getConfiguration('EBAY_PICTURE_SIZE_BIG');
         if (!empty($conf_img_big)) {
@@ -311,7 +317,6 @@ class EbayProfile extends ObjectModel
         } else {
             $sizeBig = 0;
         }
-
 
         $this->setConfiguration('EBAY_PICTURE_SIZE_DEFAULT', $sizeMedium);
         $this->setConfiguration('EBAY_PICTURE_SIZE_SMALL', $sizeSmall);
@@ -343,7 +348,6 @@ class EbayProfile extends ObjectModel
         }
 
         return $is_all_set;
-
     }
 
     /**
@@ -409,7 +413,6 @@ class EbayProfile extends ObjectModel
             } else {
                 return false;
             }
-
         } catch (Exception $e) {
             return false;
         }
@@ -448,11 +451,9 @@ class EbayProfile extends ObjectModel
                 if (($current_profile_id_shop == $id_shop) || ($current_profile_id_shop == 0)) {
                     return new EbayProfile((int) $data[0]);
                 }
-
             } else {
                 return new EbayProfile((int) $data[0]);
             }
-
         }
 
         // if shop has changed we switch to the first shop profile
@@ -484,7 +485,6 @@ class EbayProfile extends ObjectModel
             if (!$is_shop_profile) {
                 return false;
             }
-
         }
 
         Configuration::updateValue('EBAY_CURRENT_PROFILE', $id_ebay_profile.'_'.$id_shop, false, 0, 0);

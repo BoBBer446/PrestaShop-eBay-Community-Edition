@@ -51,12 +51,10 @@ class EbayProductImage
             if (version_compare(_PS_VERSION_, '1.5', '>')) {
                 $db->insert('ebay_product_image', $data);
             } else {
-
                 foreach ($conditions as $condition) {
                     $db->autoExecute(_DB_PREFIX_.'ebay_product_image', $data, 'INSERT');
                 }
             }
-
         }
 
         return $ebay_url;

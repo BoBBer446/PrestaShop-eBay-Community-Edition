@@ -86,7 +86,6 @@ class EbayFormShippingTab extends EbayTab
                     } else {
                         $carrier['price'] = round($result, 2, PHP_ROUND_HALF_DOWN);
                     }
-
                 }
             }
         }
@@ -139,7 +138,6 @@ class EbayFormShippingTab extends EbayTab
                 } else {
                     Db::getInstance()->autoExecute(_DB_PREFIX_.'ebay_shipping_zone_excluded', array('excluded' => 1), 'UPDATE', $where);
                 }
-
             }
         }
 
@@ -149,7 +147,6 @@ class EbayFormShippingTab extends EbayTab
         EbayShipping::truncate($this->ebay_profile->id);
 
         if ($ebay_carriers = Tools::getValue('ebayCarrier')) {
-
             $ps_carriers = Tools::getValue('psCarrier');
             $extra_fees = Tools::getValue('extrafee');
             $ps_ship= new Carrier($ps_carriers);
