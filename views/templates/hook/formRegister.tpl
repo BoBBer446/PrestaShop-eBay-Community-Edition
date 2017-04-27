@@ -31,7 +31,23 @@
 		{rdelim});
 	</script>
 {/if}
-
+	<div class="bootstrap">
+            {if isset($alerts) && $alerts && sizeof($alerts)}
+                {foreach from=$alerts item='alert'}
+                    <div style="text-align: left;width: 100%;padding-left: 50px;border-left: solid 3px #fcc94f;padding: 15px;margin-bottom: 17px;padding-left: 50px;" class="{if $ps_version > '1.5'}alert {/if}alert-{if $alert.type == 'error'}danger{if $ps_version < '1.5'} error{/if}{elseif $alert.type == 'warning'}warning{if $ps_version < '1.5'} warn{/if}{elseif $alert.type == 'info'}info{if $ps_version < '1.5'} conf{/if}{/if}"><button type="button" class="close" data-dismiss="alert">×</button>
+                        {if isset($alert.link_warn)}
+                            {assign var="link" value='<a href="'|cat:$alert.link_warn|cat:'" target="_blank">'}
+                            {$alert.message|regex_replace:"/@link@/":$link|regex_replace:"/@\/link@/":"</a >"}
+                        {else}
+                            {$alert.message|escape:'htmlall':'UTF-8'}
+                        {/if}
+                        {if isset($alert.kb)}
+                            <a class="kb-help" data-errorcode="{$alert.kb.errorcode|escape:'htmlall':'UTF-8'}" data-module="ebay" data-lang="{$alert.kb.lang|escape:'htmlall':'UTF-8'}" module_version="{$alert.kb.module_version|escape:'htmlall':'UTF-8'}" prestashop_version="{$alert.kb.prestashop_version|escape:'htmlall':'UTF-8'}"></a>
+                        {/if}
+                    </div>
+                {/foreach}
+            {/if}
+        </div>
 <fieldset class="new">
 	<legend>{l s='Register the module on eBay' mod='ebay'}</legend>
 
@@ -106,7 +122,7 @@
 		{/literal}
 	</script>
     {if $config_country_ok == false}
-	<form action="{$action_url|escape:'htmlall':'UTF-8'}" method="post" id="ebay_register_form">
+	<form action="{$action_url|escape:'htmlall':'UTF-8'}" method="post" id="ebay_register_form">        
         <div id="ebay-register-content">
             <div id="title_register">
                 <strong>{l s='I have a professional eBay account:' mod='ebay'}</strong>
@@ -149,6 +165,16 @@
                                         {/foreach}
                                     {/if}
                                 </select>
+                            </td>
+                        </tr>
+
+                        <tr class="margin-bottom">
+                            <td colspan="2">
+                                <div class="txt-right">
+                                    <a class="kb-help" style ="width: auto;height: 20px;background-image: none;" data-errorcode="{$help_country.error_code}" data-module="ebay" data-lang="{$help_country.lang}" module_version="{$help_country.module_version}" prestashop_version="{$help_country.ps_version}" href="" target="_blank">
+                                        {l s='A country is missing ?' mod='ebay'}
+                                    </a>
+                                </div>
                             </td>
                         </tr>
 
@@ -281,4 +307,35 @@ function validateEmail(email){
         return true;
 }
 {/literal}
+</script>
+<script>
+    {literal}
+    function getKb(item){
+        item = typeof item !== 'undefined' ? item : 0;
+
+        var that = $("a.kb-help:eq("+ item +")");
+
+        $.ajax({
+            type: "POST",
+            url: '{/literal}{$load_kb_path}{literal}',
+            data: {errorcode: $( that ).attr('data-errorcode'), lang: $( that ).attr('data-lang'), token:"{/literal}{$ebay_token}{literal}", admin_path: "{/literal}{$admin_path|escape:'urlencode'}{literal}"},
+            dataType: "json",
+            success: function(data)
+            {
+                if (data.result != 'error')
+                {
+                    $( that ).addClass('active');
+                    $( that ).attr('href', data.result);
+                    $( that ).attr('target', '_blank');
+                }
+                var next = item + 1;
+                if ($("a.kb-help:eq("+ next +")").length > 0)
+                    getKb(next);
+            }
+        });
+    }
+    jQuery(document).ready(function($) {
+        getKb();
+    });
+    {/literal}
 </script>
