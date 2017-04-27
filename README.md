@@ -1,6 +1,8 @@
 Keine geblockten Länder!
 No blocked Countries!
 
+Freigeschaltete Länder:
+'es', 'fr', 'nl', 'pl', 'be','it', 'gb', 'de', 'us', 'ie'
  
 
 Original Prestashop Store: http://addons.prestashop.com/de/2742-ebay-marketplace-offiziells.html
@@ -17,11 +19,36 @@ Kopiere alle Dateien von der .ZIP Datei in deinen Modul Ordner.
 
 Prüfe deine Datenbank mit der Funktion im Modul.
 
-Man kann jetzt Rahmenbedingungen Nutzen die bei eBay hinterlegt sind!
-
- 
 
 Aktuell:
+
+
+Neue Funktionen von Version 1.15.5(25.04.2017)
+
+    Feature – KType based on PS Characteristic with coma separator
+    Improvment – PrestaShop coding rule fixes : API template
+    Improvment – PrestaShop coding rule fixes : hard coded images
+    Improvment – Change Product not published message
+    Improvment – Add link to help.202 for missing countries
+    Improvment – Choose characteristic used for variation image
+    Improvment – eBay 2.0 announcement banner
+    Bug fix – __getVariationSpecifics request sql fixed
+    Bug fix – Duplicate listing
+    Bug fix – Mixed combination on products
+    Bug fix – Endlisting not working for mono variation products
+    Bug fix – Wrong carrier on imported order in multiprofile context
+    Bug fix – Improve pagination loading
+    Bug fix – Price impact calculation fix : based on PS cat & not eBay cat
+    Bug fix – Order returns : hide waiting wheel when view empty
+    Bug fix – Fixed wrong products shown in Orphan products view
+    Bug fix – Fixed wrong links in PrestaShop products View
+    Bug fix – Mixed content in HTTPS (fixed template images)
+    Bug fix – Full uninstaller missed some table (&DELETE_EVERYTHING_EBAY=)
+    Bug fix – Added missing translations for French & Italian
+
+
+
+
 Kompatibilitätv1.4.0.2 - v1.6.1.11
 Version1.15.4 (16.02.2017) 
 
