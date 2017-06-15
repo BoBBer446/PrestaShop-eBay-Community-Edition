@@ -130,7 +130,7 @@ class Ebay extends Module
     {
         $this->name = 'ebay';
         $this->tab = 'market_place';
-        $this->version = '1.15.5';
+        $this->version = '1.15.6';
         $this->stats_version = '1.0';
 
         $this->author = 'PrestaShop';
@@ -1468,6 +1468,7 @@ class Ebay extends Module
             set_time_limit(3600);
             Configuration::set('EBAY_VERSION', $this->version);
             $validatordb = new EbayDbValidator();
+            $validatordb->checkTemplate();
             $validatordb->checkDatabase(false);
         }
 
