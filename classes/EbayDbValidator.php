@@ -334,6 +334,20 @@ class EbayDbValidator
         }
     }
 
+    public function checkTemplate()
+    {
+        $id_shop =  Shop::getContextShopID();
+        $profiles = EbayProfile::getProfilesByIdShop($id_shop);
+        foreach ($profiles as $profile_ebay) {
+            $profile = new EbayProfile($profile_ebay['id_ebay_profile']);
+            $template=  EbayConfiguration::get($profile_ebay['id_ebay_profile'], 'EBAY_PRODUCT_TEMPLATE');
+            if (preg_match("/headerSearchProductPrestashop/i", $template)) {
+                $template = preg_replace("/\s*\<form[^)]*\<\/form\>/", "", $template);
+                $profile->setConfiguration('EBAY_PRODUCT_TEMPLATE', $template, true);
+            }
+        }
+    }
+
     public function writeLog()
     {
         $handle = fopen(dirname(__FILE__).'/../log/log_database.txt', 'a+');

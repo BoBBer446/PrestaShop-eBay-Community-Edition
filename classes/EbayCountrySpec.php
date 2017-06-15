@@ -36,9 +36,7 @@ class EbayCountrySpec
     public $accepted_isos_block = array();
     private $dev;
     private static $multilang = array('be');
-
     private static $country_data = array(
-
      'ie' => array(
              'site_id' => 205,
              'documentation' => 'ie',
@@ -59,7 +57,6 @@ class EbayCountrySpec
              'top_rated_url' => 'http://pages.ebay.ie/help/sell/top-rated.html',
              'url_help_business_policies' => 'http://pages.ebay.ie/help/sell/business-policies.html',
          ),
-
       'us' => array(
             'site_id' => 0,
             'documentation' => 'en',
@@ -80,8 +77,6 @@ class EbayCountrySpec
             'top_rated_url' => 'http://pages.ebay.com/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.com/help/sell/business-policies.html',
         ),
-
-
         'es' => array(
             'site_id' => 186,
             'documentation' => 'es',
@@ -121,7 +116,6 @@ class EbayCountrySpec
             'picture_url' => 'http://pages.ebay.fr/professionnels/images.html',
             'top_rated_url' => 'http://pages.ebay.fr/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.fr/help/sell/business-policies.html',
-
         ),
         'nl' => array(
             'site_id' => 146,
@@ -142,7 +136,6 @@ class EbayCountrySpec
             'picture_url' => 'http://pages.ebay.nl/help/sell/pictures.html',
             'top_rated_url' => 'http://pages.ebay.nl/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.nl/help/sell/business-policies.html',
-
         ),
         'pl' => array(
             'site_id' => 212,
@@ -206,7 +199,6 @@ class EbayCountrySpec
             'top_rated_url' => 'http://pages.benl.ebay.be/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.benl.ebay.be/help/sell/business-policies.html',
         ),
-
         'ch' => array(
             'site_id' => 193,
             'documentation' => 'de',
@@ -226,7 +218,6 @@ class EbayCountrySpec
             'picture_url' => 'http://pages.ebay.ch/help/sell/pictures.html',
             'top_rated_url' => 'http://pages.ebay.ch/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.ch/help/sell/business-policies.html',
-
         ),
         'at' => array(
             'site_id' => 16,
@@ -247,10 +238,7 @@ class EbayCountrySpec
             'picture_url' => 'http://pages.ebay.at/help/sell/pictures.html',
             'top_rated_url' => 'http://pages.ebay.at/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.at/help/sell/business-policies.html',
-
-
         ),
-
          'it' => array(
             'site_id' => 101,
             'documentation' => 'it',
@@ -311,10 +299,7 @@ class EbayCountrySpec
             'top_rated_url' => 'http://pages.ebay.co.uk/help/sell/top-rated.html',
             'url_help_business_policies' => 'http://pages.ebay.co.uk/help/sell/business-policies.html',
         ),
-
-
     );
-
 	#No Block
     private static $cuntry_block= array();
 
